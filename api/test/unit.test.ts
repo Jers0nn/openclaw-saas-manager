@@ -30,6 +30,8 @@ describe("loadConfig", () => {
   it.each([
     [{ API_KEYS: undefined }, /API_KEYS must contain/],
     [{ API_KEYS: "short-key" }, /at least 32 characters/],
+    [{ API_KEYS: "replace-with-a-generated-key-of-at-least-32-chars" }, /placeholder/],
+    [{ API_KEYS: `${validKey},${validKey}` }, /duplicate/],
     [{ DATABASE_URL: undefined }, /DATABASE_URL/],
     [{ CORS_ORIGINS: "*" }, /'\*' is not allowed/],
     [{ CORS_ORIGINS: "https://ok.fixture.test/" }, /bare origins/],

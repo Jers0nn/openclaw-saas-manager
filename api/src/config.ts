@@ -67,6 +67,16 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       `Invalid configuration: every key in API_KEYS must be at least ${MIN_API_KEY_LENGTH} characters`,
     );
   }
+  // Refuse the placeholder values shipped in .env.example so a copied example
+  // file can never become a working credential.
+  if (apiKeys.some((key) => /replace-with|change-me|your-api-key|example/i.test(key))) {
+    throw new ConfigError(
+      "Invalid configuration: API_KEYS contains a placeholder value; generate a random key",
+    );
+  }
+  if (new Set(apiKeys).size !== apiKeys.length) {
+    throw new ConfigError("Invalid configuration: API_KEYS contains duplicate keys");
+  }
 
   const corsOrigins = csv(e.CORS_ORIGINS);
   if (corsOrigins.includes("*")) {

@@ -1,0 +1,53 @@
+# Render Blueprint for the SaaS Manager API (api/ only — the OpenClaw plugin is
+# not deployed). Nothing is created until you apply this Blueprint yourself in
+# the Render dashboard (New → Blueprint). See DEPLOYMENT.md.
+#
+# Plans default to "free" so applying it costs nothing. Free tier limits (as
+# documented by Render at the time of writing): free web services sleep after
+# ~15 minutes without traffic, and free Postgres databases expire after 30 days.
+# Use paid plans for real customer data.
+#
+# No secret values live in this file:
+#   - DATABASE_URL is injected by Render from the database below.
+#   - API_KEYS uses `sync: false`: Render asks you for the value when you apply
+#     the Blueprint, and it is stored only in Render.
+
+services:
+  - type: web
+    name: saas-manager-api
+    runtime: node
+    plan: free
+    rootDir: api
+    # Dev dependencies (TypeScript) are needed to compile; they are pruned afterwards.
+    buildCommand: npm ci --include=dev && npm run build && npm prune --omit=dev
+    # Applies pending migrations, then starts the server. Running migrations at
+    # start works on every plan (Render's preDeployCommand requires a paid plan);
+    # node-pg-migrate takes an advisory lock, so concurrent starts are safe.
+    startCommand: npm run start:prod
+    healthCheckPath: /v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: info
+      - key: DATABASE_URL
+        fromDatabase:
+          name: saas-manager-db
+          property: connectionString
+      - key: API_KEYS
+        sync: false
+      # Render terminates TLS at its proxy; trust it so rate limiting sees client IPs.
+      - key: TRUST_PROXY
+        value: "true"
+      - key: RATE_LIMIT_MAX
+        value: "120"
+
+databases:
+  - name: saas-manager-db
+    plan: free
+    databaseName: saas_manager
+    user: saas_manager
+    postgresMajorVersion: "16"
+    # Empty allow list: no connections from the public internet; only services
+    # inside your Render account can reach the database.
+    ipAllowList: []

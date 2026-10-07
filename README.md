@@ -11,26 +11,28 @@ This repository contains three parts that are deployed separately:
 | **SaaS Manager API** | `api/` | REST API (`/v1`) with PostgreSQL. Node.js, Fastify, Zod and node-pg-migrate |
 
 > **Status:** works end to end in local development and in automated tests.
-> No public API deployment exists yet. Deployment is prepared in a later phase.
+> Deployment files are ready (see [DEPLOYMENT.md](DEPLOYMENT.md)), but no
+> public API deployment exists yet.
 
 ## Architecture
 
 ```
- OpenClaw agent  ─┐                      LobeHub
- (or LobeHub's    │                         │
-  "Connect        │  reads                  │  reads
-  External        ▼                         ▼
-  Agents")    SKILL.md                  SKILL.md (imported Skill)
-                  │                         │
-                  ▼  calls tools            ▼  needs a connector (MCP) to call tools
-          OpenClaw plugin              (not implemented yet, see "LobeHub")
-          saas_* tools
-                  │  HTTPS + Authorization: Bearer <API key>
-                  ▼
-          SaaS Manager API  (/v1, api/)
-                  │
-                  ▼
-             PostgreSQL
+LobeHub  (Create Agent → Connect External Agents → OpenClaw)
+   │
+   ▼
+OpenClaw agent  (runs on your own device or server)
+   │  reads
+   ▼
+SKILL.md  (when to use each tool, confirm before writing, never invent data)
+   │
+   ▼  calls tools
+OpenClaw plugin  (saas_* tools, this repository's root)
+   │  HTTPS + Authorization: Bearer <API key>
+   ▼
+SaaS Manager API  (/v1, api/)
+   │
+   ▼
+PostgreSQL
 ```
 
 - The **plugin** only talks HTTP to the API. It has no database access and
@@ -204,24 +206,29 @@ The read tools need no opt-in and no approval.
 
 ## LobeHub
 
-The LobeHub documentation (checked in the `lobehub/lobehub` repository, October
-2026) describes two different setups:
+This project uses LobeHub's **Connect External Agents** feature, as described
+in the LobeHub documentation (checked in the `lobehub/lobehub` repository,
+October 2026). LobeHub hosts the conversation, and your own OpenClaw runs the
+agent, the Skill and this plugin. No MCP server is needed.
 
-1. **Connect OpenClaw as an external agent (no MCP needed).** In LobeHub,
-   *Create Agent → Connect External Agents → OpenClaw*. The agent runs inside
-   your own OpenClaw, on a device connected through the LobeHub desktop app or
-   the LobeHub CLI, so it uses this plugin and its Skill directly. LobeHub
-   lists platform agents as **beta**. Enable them in *Settings → Advanced → Labs*.
-2. **A native LobeHub agent.** A LobeHub Skill is instructions only: it cannot
-   call an API by itself. External tools are connected through **Connectors**:
-   service connectors or MCP integrations over HTTP or STDIO; STDIO works on
-   desktop only. A native LobeHub agent would therefore need an **MCP server**
-   that exposes the same five operations. This repository does not include one
-   yet.
+1. Install and configure OpenClaw with this plugin on the device that will
+   run the agent (see above).
+2. Connect that device to LobeHub with the LobeHub desktop app or the LobeHub
+   CLI.
+3. In LobeHub: *Create Agent → Connect External Agents → OpenClaw*.
 
-To import the Skill into LobeHub: *Skills → Add Skill… → Add → import from
-GitHub* with this repository's URL. The `SKILL.md` must be at the root of the
-directory you import.
+LobeHub lists platform agents such as OpenClaw as **beta**. Enable them under
+*Settings → Advanced → Labs*. OpenClaw keeps its own configuration, Skills and
+memory. LobeHub does not need the API key.
+
+### Future option: MCP server (not implemented)
+
+A *native* LobeHub agent (one that does not run through OpenClaw) cannot call
+the API from a Skill alone: LobeHub Skills are instructions only, and external
+tools are attached as **Connectors**. Connectors can be MCP integrations over
+HTTP or STDIO; STDIO works on desktop only. A future version could add an MCP
+server exposing the same five operations against the same `/v1` API, with the
+same write-confirmation rules. It is intentionally not part of this version.
 
 ## Development
 
@@ -258,9 +265,14 @@ npm test && (cd api && npm test)
 
 ## Deployment
 
-Not done yet. The API is designed for a managed platform (build command,
-start command, `/v1/health` check, `DATABASE_URL`, `API_KEYS`, migrations as a
-release step). Instructions will be added once a platform is chosen.
+The API is ready to deploy but has not been deployed. See
+[DEPLOYMENT.md](DEPLOYMENT.md):
+
+- [`render.yaml`](render.yaml): Render Blueprint (web service and PostgreSQL,
+  free plans by default, migrations at start, `/v1/health` check)
+- [`api/Dockerfile`](api/Dockerfile): container image for Railway, Fly.io or
+  any Docker host
+- `npm run smoke` (in `api/`): read-only check of a deployed API
 
 ## Security
 

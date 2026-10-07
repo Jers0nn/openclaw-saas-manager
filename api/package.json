@@ -12,12 +12,14 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/server.js",
+    "start:prod": "npm run migrate:up && node dist/server.js",
     "dev": "tsx watch src/server.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "migrate": "node-pg-migrate --migrations-dir migrations --migration-file-language sql",
     "migrate:up": "npm run migrate -- up",
     "migrate:down": "npm run migrate -- down",
     "seed:dev": "tsx scripts/seed-dev.ts",
+    "smoke": "node scripts/smoke.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },
