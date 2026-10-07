@@ -1,0 +1,21 @@
+# Local development database only. Do not use these credentials anywhere else.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: saas
+      POSTGRES_PASSWORD: change-me-local-only
+      POSTGRES_DB: saas_manager_dev
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - saas-manager-pg:/var/lib/postgresql/data
+      - ./scripts/create-test-db.sql:/docker-entrypoint-initdb.d/create-test-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U saas -d saas_manager_dev"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  saas-manager-pg:

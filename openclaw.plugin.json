@@ -2,6 +2,8 @@
   "id": "saas-manager",
   "name": "SaaS Manager",
   "description": "Manage SaaS customers, subscriptions and usage from OpenClaw.",
+  "categories": ["sales-marketing"],
+  "skills": ["./dist/skills"],
   "contracts": {
     "tools": [
       "saas_list_customers",
@@ -11,25 +13,93 @@
       "saas_get_usage"
     ]
   },
+  "toolMetadata": {
+    "saas_create_customer": {
+      "optional": true
+    }
+  },
   "activation": {
     "onStartup": true
+  },
+  "configContracts": {
+    "secretInputs": {
+      "paths": [
+        {
+          "path": "apiKey",
+          "expected": "string",
+          "ownerKind": "capability"
+        }
+      ]
+    }
+  },
+  "uiHints": {
+    "apiUrl": {
+      "label": "API URL",
+      "help": "Base URL of your SaaS Manager API, including /v1. Must use https:// (http:// is accepted only for localhost).",
+      "placeholder": "https://<your-api-host>/v1"
+    },
+    "apiKey": {
+      "label": "API key",
+      "help": "Bearer key for the SaaS Manager API. Store it as a SecretRef (for example an environment variable) instead of plaintext.",
+      "sensitive": true
+    },
+    "timeoutMs": {
+      "label": "Request timeout (ms)",
+      "help": "Per-request timeout for API calls. Default 10000.",
+      "advanced": true
+    }
   },
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
+    "$defs": {
+      "secretRef": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": ["env", "file", "exec", "store"]
+          },
+          "provider": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": ["source", "provider", "id"]
+      },
+      "secretInput": {
+        "anyOf": [
+          {
+            "type": "string",
+            "minLength": 1
+          },
+          {
+            "$ref": "#/$defs/secretRef"
+          }
+        ]
+      }
+    },
     "properties": {
       "apiUrl": {
         "type": "string",
-        "description": "Base URL of the SaaS API"
+        "minLength": 1,
+        "description": "Base URL of the SaaS Manager API, including the /v1 prefix"
       },
       "apiKey": {
-        "type": "string",
-        "description": "SaaS API authentication key"
+        "$ref": "#/$defs/secretInput",
+        "description": "SaaS Manager API key (plaintext or SecretRef)"
+      },
+      "timeoutMs": {
+        "type": "integer",
+        "minimum": 1000,
+        "maximum": 60000,
+        "default": 10000,
+        "description": "Per-request timeout in milliseconds"
       }
     },
-    "required": [
-      "apiUrl",
-      "apiKey"
-    ]
+    "required": ["apiUrl", "apiKey"]
   }
 }

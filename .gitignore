@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Packed tarballs
+*.tgz
+
+# Environment files: NEVER commit real secrets.
+.env
+.env.*
+!.env.example
+
+# Logs and coverage
+*.log
+npm-debug.log*
+coverage/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
