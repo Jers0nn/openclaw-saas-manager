@@ -1,0 +1,35 @@
+{
+  "id": "saas-manager",
+  "name": "SaaS Manager",
+  "description": "Manage SaaS customers, subscriptions and usage from OpenClaw.",
+  "contracts": {
+    "tools": [
+      "saas_list_customers",
+      "saas_get_customer",
+      "saas_create_customer",
+      "saas_list_subscriptions",
+      "saas_get_usage"
+    ]
+  },
+  "activation": {
+    "onStartup": true
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "apiUrl": {
+        "type": "string",
+        "description": "Base URL of the SaaS API"
+      },
+      "apiKey": {
+        "type": "string",
+        "description": "SaaS API authentication key"
+      }
+    },
+    "required": [
+      "apiUrl",
+      "apiKey"
+    ]
+  }
+}
