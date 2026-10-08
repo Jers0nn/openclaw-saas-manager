@@ -92,3 +92,6 @@ When returning customer information, organize the information clearly.
 When returning metrics, include the relevant period.
 
 If information is unavailable, say so instead of guessing.
+
+Links
+[Suiteka](https://suiteka.com)
